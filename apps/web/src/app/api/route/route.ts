@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { OdsayApiError } from "@/lib/odsay/client";
+import { getOdsayAuthErrorHint } from "@/lib/odsay/auth-hint";
 import { formatDurationMinutes } from "@/lib/odsay/format";
 import {
   buildTimelineFromSubPaths,
@@ -126,7 +127,7 @@ export async function POST(request: Request) {
     if (error instanceof OdsayApiError) {
       return NextResponse.json(
         {
-          error: error.message,
+          error: getOdsayAuthErrorHint(error.message),
           code: error.code,
         },
         { status: error.status && error.status >= 400 ? error.status : 502 },

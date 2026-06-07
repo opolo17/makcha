@@ -8,6 +8,7 @@ import {
 import type { LocationData } from "@/types/location";
 
 const SEARCH_DEBOUNCE_MS = 400;
+const MIN_QUERY_LENGTH = 2;
 
 function FieldLabel({
   htmlFor,
@@ -76,7 +77,12 @@ export function LocationSearchField({
 
   const runSearch = useCallback(async (searchQuery?: string) => {
     const keyword = (searchQuery ?? query).trim();
-    if (!keyword) return;
+    if (!keyword || keyword.length < MIN_QUERY_LENGTH) {
+      if (keyword && keyword.length < MIN_QUERY_LENGTH) {
+        setError(`검색어를 ${MIN_QUERY_LENGTH}글자 이상 입력해주세요.`);
+      }
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -115,6 +121,12 @@ export function LocationSearchField({
     }
 
     if (value && value.name === keyword) {
+      return;
+    }
+
+    if (keyword.length < MIN_QUERY_LENGTH) {
+      setResults([]);
+      setIsOpen(false);
       return;
     }
 
@@ -178,7 +190,7 @@ export function LocationSearchField({
         <button
           type="button"
           onClick={() => void runSearch()}
-          disabled={isLoading || !query.trim()}
+          disabled={isLoading || query.trim().length < MIN_QUERY_LENGTH}
           className="shrink-0 rounded-xl border border-border bg-surface px-4 py-3.5 text-sm font-bold text-foreground transition-colors hover:border-zinc-400 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {isLoading ? "…" : "검색"}

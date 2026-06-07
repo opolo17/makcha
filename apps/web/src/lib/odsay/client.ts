@@ -13,22 +13,28 @@ export class OdsayApiError extends Error {
 
 type OdsayFetchParams = Record<string, string | number | undefined>;
 
+function buildOdsayUrl(endpoint: string, params: OdsayFetchParams): string {
+  const base = getOdsayBaseUrl().replace(/\/$/, "");
+  const parts = [`apiKey=${encodeURIComponent(getOdsayApiKey())}`, "lang=0"];
+
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== "") {
+      parts.push(
+        `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`,
+      );
+    }
+  }
+
+  return `${base}/${endpoint}?${parts.join("&")}`;
+}
+
 export async function odsayGet<T>(
   endpoint: string,
   params: OdsayFetchParams,
 ): Promise<T> {
-  const base = getOdsayBaseUrl().replace(/\/$/, "");
-  const url = new URL(`${base}/${endpoint}`);
-  url.searchParams.set("apiKey", getOdsayApiKey());
-  url.searchParams.set("lang", "0");
+  const url = buildOdsayUrl(endpoint, params);
 
-  for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== "") {
-      url.searchParams.set(key, String(value));
-    }
-  }
-
-  const response = await fetch(url.toString(), {
+  const response = await fetch(url, {
     method: "GET",
     headers: { Accept: "application/json" },
     cache: "no-store",
