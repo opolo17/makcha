@@ -1,3 +1,4 @@
+import type { AppointmentTimeInput } from "@/lib/appointment-time";
 import type { TransitCoordinate } from "@/types/transit-route";
 
 export type TripRoute = {
@@ -7,11 +8,25 @@ export type TripRoute = {
   destination: TransitCoordinate | null;
 };
 
+export function isValidCoordinate(
+  coord: TransitCoordinate | null | undefined,
+): coord is TransitCoordinate {
+  if (!coord) return false;
+  return (
+    Number.isFinite(coord.lat) &&
+    Number.isFinite(coord.lng) &&
+    coord.lat >= -90 &&
+    coord.lat <= 90 &&
+    coord.lng >= -180 &&
+    coord.lng <= 180
+  );
+}
+
 export function hasMapCoordinates(trip: TripRoute): boolean {
-  return Boolean(trip.origin && trip.destination);
+  return isValidCoordinate(trip.origin) && isValidCoordinate(trip.destination);
 }
 
 export type CalculatePayload = {
   bufferMinutes: number;
-  trip: TripRoute;
+  appointment: AppointmentTimeInput;
 };

@@ -1,12 +1,11 @@
-/** API 연동 전 가상 이동 시간(분) */
-export const VIRTUAL_TRAVEL_MINUTES = 30;
-
+/** 막차 시각 = 약속 시각 − (이동 시간 + 준비 버퍼) */
 export function computeLeaveDeadlineAt(
+  appointmentAt: Date,
+  travelMinutes: number,
   bufferMinutes: number,
-  from: Date = new Date(),
 ): Date {
-  const totalMinutes = bufferMinutes + VIRTUAL_TRAVEL_MINUTES;
-  return new Date(from.getTime() + totalMinutes * 60 * 1000);
+  const totalMinutes = travelMinutes + bufferMinutes;
+  return new Date(appointmentAt.getTime() - totalMinutes * 60 * 1000);
 }
 
 export function getSecondsUntilDeadline(

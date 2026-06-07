@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: GmarketSansBold;
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff")
+    format("woff");
+}
+
 :root {
   --background: #ffffff;
   --foreground: #0a0a0a;
@@ -11,6 +20,11 @@
   --neon-red: #dc2626;
   --neon-red-glow: rgba(220, 38, 38, 0.35);
   --neon-yellow-glow: rgba(234, 179, 8, 0.3);
+
+  /* 본문 및 기본 UI — Pretendard */
+  --font-pretendard:
+    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    system-ui, sans-serif;
 }
 
 @theme inline {
@@ -22,18 +36,16 @@
   --color-muted: var(--muted);
   --color-neon-yellow: var(--neon-yellow);
   --color-neon-red: var(--neon-red);
+
+  /* tailwind.config.js extend.fontFamily 와 동일 역할 (Tailwind v4) */
+  --font-sans: var(--font-pretendard), sans-serif;
+  --font-impact: GmarketSansBold, var(--font-black-han-sans), sans-serif;
+  --font-timer: var(--font-roboto-mono), monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family:
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    Roboto,
-    "Noto Sans KR",
-    sans-serif;
 }
 
 @keyframes pulse-glow {

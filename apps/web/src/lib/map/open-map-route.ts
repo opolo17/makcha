@@ -59,8 +59,8 @@ export function openMapRoute(
 
   const fallbackTimer = window.setTimeout(() => {
     clearFallback();
-    if (!didHide) {
-      window.location.assign(webUrl);
+    if (!didHide && !document.hidden) {
+      window.open(webUrl, "_blank", "noopener,noreferrer");
     }
   }, APP_OPEN_TIMEOUT_MS);
 

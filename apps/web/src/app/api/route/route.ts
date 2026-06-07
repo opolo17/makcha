@@ -92,6 +92,21 @@ export async function POST(request: Request) {
       };
     }
 
+    const timeline = buildTimelineFromSubPaths(bestPath.subPath ?? []);
+
+    if (firstTransit?.arrival && firstTransit.arrival.source !== "unavailable") {
+      const transitIdx = timeline.findIndex(
+        (step) => step.modeLabel === "지하철" || step.modeLabel === "버스",
+      );
+      if (transitIdx >= 0) {
+        const direction = firstTransit.direction ?? firstTransit.lineName;
+        timeline[transitIdx] = {
+          ...timeline[transitIdx],
+          highlightLine: `★ [${direction}] ${firstTransit.arrival.label}`,
+        };
+      }
+    }
+
     const response: TransitRouteResponse = {
       totalDurationMinutes,
       totalDurationLabel: formatDurationMinutes(totalDurationMinutes),
@@ -102,7 +117,7 @@ export async function POST(request: Request) {
         lastEndStation: bestPath.info.lastEndStation,
         payment: bestPath.info.payment,
         totalWalkMinutes: bestPath.info.totalWalk,
-        timeline: buildTimelineFromSubPaths(bestPath.subPath ?? []),
+        timeline,
       },
     };
 

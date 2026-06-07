@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { LocationSearchField } from "@/components/home/LocationSearchField";
 import { MakchaLogo } from "@/components/brand/MakchaLogo";
-import type { CalculatePayload } from "@/types/trip-route";
 import {
   BUFFER_STYLE_OPTIONS,
   getBufferMinutesById,
   type BufferStyleId,
 } from "@/lib/buffer-styles";
-import { resolveTripCoordinates } from "@/lib/map/resolve-place";
+import type { LocationData } from "@/types/location";
+import type { CalculatePayload } from "@/types/trip-route";
 
 const HOURS = Array.from({ length: 12 }, (_, i) => i + 1);
 const MINUTES = Array.from({ length: 60 }, (_, i) => i);
@@ -40,29 +41,41 @@ function inputClassName() {
 }
 
 type HomeScreenProps = {
+  departure: LocationData | null;
+  destination: LocationData | null;
+  calculateError?: string | null;
+  isCalculating?: boolean;
+  onDepartureChange: (location: LocationData | null) => void;
+  onDestinationChange: (location: LocationData | null) => void;
   onCalculate?: (payload: CalculatePayload) => void;
 };
 
-export function HomeScreen({ onCalculate }: HomeScreenProps) {
+export function HomeScreen({
+  departure,
+  destination,
+  calculateError,
+  isCalculating = false,
+  onDepartureChange,
+  onDestinationChange,
+  onCalculate,
+}: HomeScreenProps) {
   const [bufferStyle, setBufferStyle] = useState<BufferStyleId>("normal");
   const [meridiem, setMeridiem] = useState<"AM" | "PM">("PM");
   const [hour, setHour] = useState("9");
   const [minute, setMinute] = useState("0");
-  const [departure, setDeparture] = useState("");
-  const [destination, setDestination] = useState("");
 
   const handleSubmit = () => {
-    const coords = resolveTripCoordinates(departure, destination);
     onCalculate?.({
       bufferMinutes: getBufferMinutesById(bufferStyle),
-      trip: {
-        originLabel: departure.trim() || "출발지",
-        destinationLabel: destination.trim() || "목적지",
-        origin: coords.origin,
-        destination: coords.destination,
+      appointment: {
+        hour: Number(hour),
+        minute: Number(minute),
+        meridiem,
       },
     });
   };
+
+  const canCalculate = Boolean(departure && destination) && !isCalculating;
 
   return (
     <div className="relative mx-auto min-h-full max-w-md bg-background">
@@ -74,9 +87,9 @@ export function HomeScreen({ onCalculate }: HomeScreenProps) {
       <main className="relative flex min-h-full flex-col px-5 pb-32 pt-10">
         <header className="mb-8">
           <MakchaLogo className="h-10 w-auto" priority />
-          <p className="mt-3 text-lg font-medium leading-snug text-zinc-700">
+          <p className="mt-3 font-impact text-lg font-bold leading-snug text-zinc-700">
             오늘도{" "}
-            <span className="font-bold text-neon-red">늦으실 건가요?</span>
+            <span className="text-neon-red">늦으실 건가요?</span>
           </p>
         </header>
 
@@ -156,33 +169,21 @@ export function HomeScreen({ onCalculate }: HomeScreenProps) {
             </div>
           </section>
 
-          <section>
-            <FieldLabel htmlFor="departure">출발지</FieldLabel>
-            <input
-              id="departure"
-              name="departure"
-              type="search"
-              value={departure}
-              onChange={(e) => setDeparture(e.target.value)}
-              placeholder="집, 회사, 역 이름 검색"
-              className={inputClassName()}
-              autoComplete="off"
-            />
-          </section>
+          <LocationSearchField
+            id="departure"
+            label="출발지"
+            placeholder="집, 회사, 역 이름 검색"
+            value={departure}
+            onChange={onDepartureChange}
+          />
 
-          <section>
-            <FieldLabel htmlFor="destination">목적지</FieldLabel>
-            <input
-              id="destination"
-              name="destination"
-              type="search"
-              value={destination}
-              onChange={(e) => setDestination(e.target.value)}
-              placeholder="약속 장소 검색"
-              className={inputClassName()}
-              autoComplete="off"
-            />
-          </section>
+          <LocationSearchField
+            id="destination"
+            label="목적지"
+            placeholder="약속 장소 검색"
+            value={destination}
+            onChange={onDestinationChange}
+          />
 
           <section>
             <FieldLabel>나의 준비 스타일</FieldLabel>
@@ -232,14 +233,24 @@ export function HomeScreen({ onCalculate }: HomeScreenProps) {
           className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-background via-background/95 to-transparent"
           aria-hidden
         />
+        {calculateError ? (
+          <p
+            className="relative mb-3 rounded-xl border border-red-300/50 bg-red-50 px-4 py-3 text-center text-sm font-medium text-red-700"
+            role="alert"
+          >
+            {calculateError}
+          </p>
+        ) : null}
         <button
           type="button"
           onClick={handleSubmit}
+          disabled={!canCalculate}
           className={[
-            "btn-primary-glow relative w-full rounded-2xl py-4 text-lg font-black tracking-tight",
+            "btn-primary-glow relative w-full rounded-2xl py-4 font-impact text-lg font-black tracking-tight",
             "bg-gradient-to-r from-neon-red via-red-500 to-neon-red text-white",
             "border border-red-400/30",
             "transition-transform active:scale-[0.98]",
+            "disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
           ].join(" ")}
         >
           🚨 막차 시간 계산하기

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import "./globals.css";
+import { fontClassNames } from "@/lib/fonts";
 import { PRODUCT } from "@/lib/product";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: `${PRODUCT.name} · ${PRODUCT.nameKo}`,
@@ -27,8 +28,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className="h-full">
-      <body className="min-h-full bg-background text-foreground antialiased">
+    <html lang="ko" className={`h-full ${fontClassNames}`}>
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"
+        />
+      </head>
+      <body className="min-h-full bg-background font-sans text-foreground antialiased">
         {children}
       </body>
     </html>

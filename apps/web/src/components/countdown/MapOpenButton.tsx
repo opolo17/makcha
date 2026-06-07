@@ -2,26 +2,37 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { openMapRoute } from "@/lib/map/open-map-route";
-import type { TripRoute } from "@/types/trip-route";
-import { hasMapCoordinates } from "@/types/trip-route";
+import type { TransitCoordinate } from "@/types/transit-route";
+import { isValidCoordinate } from "@/types/trip-route";
 
 type MapOpenButtonProps = {
-  trip: TripRoute;
+  originName: string;
+  destinationName: string;
+  origin: TransitCoordinate | null;
+  destination: TransitCoordinate | null;
   disabled?: boolean;
 };
 
-export function MapOpenButton({ trip, disabled }: MapOpenButtonProps) {
+export function MapOpenButton({
+  originName,
+  destinationName,
+  origin,
+  destination,
+  disabled = false,
+}: MapOpenButtonProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
-  const canOpen = hasMapCoordinates(trip) && !disabled;
+  const hasCoordinates =
+    isValidCoordinate(origin) && isValidCoordinate(destination);
+  const canOpen = hasCoordinates && !disabled;
 
   const endpoints = canOpen
     ? {
-        origin: trip.origin!,
-        destination: trip.destination!,
-        originLabel: trip.originLabel,
-        destinationLabel: trip.destinationLabel,
+        origin: origin!,
+        destination: destination!,
+        originLabel: originName,
+        destinationLabel: destinationName,
       }
     : null;
 
@@ -52,7 +63,11 @@ export function MapOpenButton({ trip, disabled }: MapOpenButtonProps) {
       <button
         type="button"
         disabled={!canOpen}
-        onClick={() => setMenuOpen((open) => !open)}
+        title={!hasCoordinates ? "위치 정보가 없습니다" : undefined}
+        onClick={() => {
+          if (!canOpen) return;
+          setMenuOpen((open) => !open);
+        }}
         className="w-full rounded-xl border border-white/30 bg-white/10 py-3.5 text-sm font-bold text-white backdrop-blur-sm transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
       >
         지도 앱으로 열기 (네이버/카카오)
@@ -84,9 +99,9 @@ export function MapOpenButton({ trip, disabled }: MapOpenButtonProps) {
         </div>
       ) : null}
 
-      {!canOpen && !disabled ? (
-        <p className="mt-2 text-center text-xs text-white/50">
-          출발·도착 좌표가 있어야 지도 앱을 열 수 있습니다.
+      {!hasCoordinates ? (
+        <p className="mt-2 text-center text-xs text-white/50" role="note">
+          위치 정보가 없습니다
         </p>
       ) : null}
     </div>
