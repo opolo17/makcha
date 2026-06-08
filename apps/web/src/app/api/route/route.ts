@@ -1,18 +1,10 @@
 import { NextResponse } from "next/server";
-import { OdsayApiError } from "@/lib/odsay/client";
 import { getOdsayAuthErrorHint } from "@/lib/odsay/auth-hint";
-import { formatDurationMinutes } from "@/lib/odsay/format";
-import {
-  buildTimelineFromSubPaths,
-  findFirstTransitLeg,
-  pickFastestPath,
-} from "@/lib/odsay/parse-route";
-import { fetchFirstTransitArrival } from "@/lib/odsay/realtime";
-import { searchPubTransPathT } from "@/lib/odsay/search-path";
+import { buildTransitRouteResponse } from "@/lib/odsay/build-transit-route";
+import { OdsayApiError } from "@/lib/odsay/client";
 import type {
   TransitCoordinate,
   TransitRouteRequest,
-  TransitRouteResponse,
 } from "@/types/transit-route";
 
 function parseCoordinate(
@@ -55,82 +47,21 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { origin, destination } = parseRequestBody(body);
 
-    const pathResult = await searchPubTransPathT(origin, destination);
-    const paths = pathResult.result?.path ?? [];
-
-    if (!paths.length) {
-      const code = pathResult.result?.error?.code ?? pathResult.error?.[0]?.code;
-      return NextResponse.json(
-        {
-          error: "경로를 찾지 못했습니다.",
-          code,
-        },
-        { status: 404 },
-      );
-    }
-
-    const bestPath = pickFastestPath(paths);
-    if (!bestPath?.info) {
-      return NextResponse.json(
-        { error: "유효한 경로 정보가 없습니다." },
-        { status: 404 },
-      );
-    }
-
-    const totalDurationMinutes = bestPath.info.totalTime ?? 0;
-    const firstLeg = findFirstTransitLeg(bestPath.subPath ?? []);
-
-    let firstTransit: TransitRouteResponse["firstTransit"] = null;
-
-    if (firstLeg && firstLeg.stationId > 0) {
-      const arrival = await fetchFirstTransitArrival(firstLeg);
-      firstTransit = {
-        mode: firstLeg.mode,
-        stationName: firstLeg.stationName,
-        lineName: firstLeg.lineName,
-        direction: firstLeg.direction,
-        arrival,
-      };
-    }
-
-    const timeline = buildTimelineFromSubPaths(bestPath.subPath ?? []);
-
-    if (firstTransit?.arrival && firstTransit.arrival.source !== "unavailable") {
-      const transitIdx = timeline.findIndex(
-        (step) => step.modeLabel === "지하철" || step.modeLabel === "버스",
-      );
-      if (transitIdx >= 0) {
-        const direction = firstTransit.direction ?? firstTransit.lineName;
-        timeline[transitIdx] = {
-          ...timeline[transitIdx],
-          highlightLine: `★ [${direction}] ${firstTransit.arrival.label}`,
-        };
-      }
-    }
-
-    const response: TransitRouteResponse = {
-      totalDurationMinutes,
-      totalDurationLabel: formatDurationMinutes(totalDurationMinutes),
-      firstTransit,
-      route: {
-        pathType: bestPath.pathType,
-        firstStartStation: bestPath.info.firstStartStation,
-        lastEndStation: bestPath.info.lastEndStation,
-        payment: bestPath.info.payment,
-        totalWalkMinutes: bestPath.info.totalWalk,
-        timeline,
-      },
-    };
-
+    const response = await buildTransitRouteResponse(origin, destination);
     return NextResponse.json(response);
   } catch (error) {
     if (error instanceof OdsayApiError) {
+      const status =
+        typeof error.status === "number" && error.status >= 400
+          ? error.status
+          : 502;
+
       return NextResponse.json(
         {
           error: getOdsayAuthErrorHint(error.message),
           code: error.code,
         },
-        { status: error.status && error.status >= 400 ? error.status : 502 },
+        { status },
       );
     }
 

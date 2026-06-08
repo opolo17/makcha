@@ -16,6 +16,10 @@ export function getSeoulBusApiKey(): string | undefined {
   return process.env.SEOUL_BUS_API_KEY?.trim() || undefined;
 }
 
+export function getOdsayWebApiKey(): string | undefined {
+  return process.env.NEXT_PUBLIC_ODSAY_WEB_API_KEY?.trim() || undefined;
+}
+
 export function getSeoulSubwayApiKey(): string | undefined {
   return process.env.SEOUL_SUBWAY_API_KEY?.trim() || undefined;
 }

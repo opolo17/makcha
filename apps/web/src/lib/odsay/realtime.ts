@@ -93,20 +93,28 @@ function matchRouteEntry(
 
 async function fetchBusStationArsId(
   stationId: number,
+  apiKey?: string,
 ): Promise<string | undefined> {
-  const data = await odsayGet<OdsayBusStationInfoResult>("busStationInfo", {
-    stationID: stationId,
-  });
+  const data = await odsayGet<OdsayBusStationInfoResult>(
+    "busStationInfo",
+    { stationID: stationId },
+    apiKey,
+  );
   return data.result?.arsID?.replace(/-/g, "");
 }
 
 async function fetchOdsayBusArrival(
   leg: ParsedTransitLeg,
+  apiKey?: string,
 ): Promise<FormattedArrival | null> {
-  const data = await odsayGet<OdsayRealtimeBusResult>("realtimeBusArrival", {
-    stationID: leg.stationId,
-    stationBase: 0,
-  });
+  const data = await odsayGet<OdsayRealtimeBusResult>(
+    "realtimeBusArrival",
+    {
+      stationID: leg.stationId,
+      stationBase: 0,
+    },
+    apiKey,
+  );
 
   const entries = data.result?.real ?? [];
   const matched = matchRouteEntry(entries, leg);
@@ -132,6 +140,7 @@ async function fetchOdsayBusArrival(
 
 async function fetchOdsaySubwayArrival(
   leg: ParsedTransitLeg,
+  apiKey?: string,
 ): Promise<FormattedArrival | null> {
   const params: Record<string, string | number> = {
     stationID: leg.stationId,
@@ -142,6 +151,7 @@ async function fetchOdsaySubwayArrival(
   const data = await odsayGet<OdsayRealtimeSubwayResult>(
     "realtimeSubwayArrival",
     params,
+    apiKey,
   );
 
   const entries = data.result?.real ?? [];
@@ -257,13 +267,14 @@ async function fetchSeoulSubwayArrival(
 
 export async function fetchFirstTransitArrival(
   leg: ParsedTransitLeg,
+  apiKey?: string,
 ): Promise<FormattedArrival> {
   try {
     if (leg.mode === "bus") {
-      const odsay = await fetchOdsayBusArrival(leg);
+      const odsay = await fetchOdsayBusArrival(leg, apiKey);
       if (odsay) return odsay;
     } else {
-      const odsay = await fetchOdsaySubwayArrival(leg);
+      const odsay = await fetchOdsaySubwayArrival(leg, apiKey);
       if (odsay) return odsay;
     }
   } catch {
@@ -272,7 +283,7 @@ export async function fetchFirstTransitArrival(
 
   try {
     if (leg.mode === "bus") {
-      const arsId = await fetchBusStationArsId(leg.stationId);
+      const arsId = await fetchBusStationArsId(leg.stationId, apiKey);
       if (arsId) {
         const seoul = await fetchSeoulBusArrival(leg, arsId);
         if (seoul) return seoul;

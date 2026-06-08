@@ -13,9 +13,13 @@ export class OdsayApiError extends Error {
 
 type OdsayFetchParams = Record<string, string | number | undefined>;
 
-function buildOdsayUrl(endpoint: string, params: OdsayFetchParams): string {
+function buildOdsayUrl(
+  apiKey: string,
+  endpoint: string,
+  params: OdsayFetchParams,
+): string {
   const base = getOdsayBaseUrl().replace(/\/$/, "");
-  const parts = [`apiKey=${encodeURIComponent(getOdsayApiKey())}`, "lang=0"];
+  const parts = [`apiKey=${encodeURIComponent(apiKey)}`, "lang=0"];
 
   for (const [key, value] of Object.entries(params)) {
     if (value !== undefined && value !== "") {
@@ -28,11 +32,12 @@ function buildOdsayUrl(endpoint: string, params: OdsayFetchParams): string {
   return `${base}/${endpoint}?${parts.join("&")}`;
 }
 
-export async function odsayGet<T>(
+export async function odsayGetWithApiKey<T>(
+  apiKey: string,
   endpoint: string,
   params: OdsayFetchParams,
 ): Promise<T> {
-  const url = buildOdsayUrl(endpoint, params);
+  const url = buildOdsayUrl(apiKey, endpoint, params);
 
   const response = await fetch(url, {
     method: "GET",
@@ -62,4 +67,13 @@ export async function odsayGet<T>(
   }
 
   return data;
+}
+
+export async function odsayGet<T>(
+  endpoint: string,
+  params: OdsayFetchParams,
+  apiKey?: string,
+): Promise<T> {
+  const key = apiKey ?? getOdsayApiKey();
+  return odsayGetWithApiKey(key, endpoint, params);
 }
