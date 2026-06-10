@@ -10,18 +10,17 @@
 }
 
 :root {
-  --background: #ffffff;
-  --foreground: #0a0a0a;
-  --surface: #f4f4f5;
-  --surface-elevated: #ffffff;
-  --border: #e4e4e7;
-  --muted: #71717a;
-  --neon-yellow: #eab308;
-  --neon-red: #dc2626;
-  --neon-red-glow: rgba(220, 38, 38, 0.35);
-  --neon-yellow-glow: rgba(234, 179, 8, 0.3);
+  --background: #09090b;
+  --foreground: #fafafa;
+  --surface: #18181b;
+  --surface-elevated: #27272a;
+  --border: rgba(255, 255, 255, 0.06);
+  --muted: #a1a1aa;
+  --neon-yellow: #f59e0b;
+  --neon-red: #ef4444;
+  --neon-red-glow: rgba(239, 68, 68, 0.2);
+  --neon-yellow-glow: rgba(245, 158, 11, 0.2);
 
-  /* 본문 및 기본 UI — Pretendard */
   --font-pretendard:
     "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
     system-ui, sans-serif;
@@ -37,7 +36,6 @@
   --color-neon-yellow: var(--neon-yellow);
   --color-neon-red: var(--neon-red);
 
-  /* tailwind.config.js extend.fontFamily 와 동일 역할 (Tailwind v4) */
   --font-sans: var(--font-pretendard), sans-serif;
   --font-impact: GmarketSansBold, var(--font-black-han-sans), sans-serif;
   --font-timer: var(--font-roboto-mono), monospace;
@@ -48,20 +46,81 @@ body {
   color: var(--foreground);
 }
 
-@keyframes pulse-glow {
-  0%,
-  100% {
-    box-shadow:
-      0 0 16px var(--neon-red-glow),
-      0 4px 20px rgba(220, 38, 38, 0.12);
+@layer components {
+  .makcha-input {
+    @apply w-full rounded-2xl border border-white/10 bg-white/[0.02] p-4 text-base text-zinc-100 placeholder:text-zinc-500 backdrop-blur-xl outline-none transition-all duration-300 focus:border-amber-500/40 focus:bg-white/[0.06] focus:shadow-[0_0_20px_rgba(245,158,11,0.1)] focus:outline-none;
   }
-  50% {
-    box-shadow:
-      0 0 24px var(--neon-red-glow),
-      0 4px 28px rgba(220, 38, 38, 0.2);
-  }
-}
 
-.btn-primary-glow {
-  animation: pulse-glow 2.5s ease-in-out infinite;
+  .makcha-glass {
+    @apply rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl;
+  }
+
+  .makcha-glass-panel {
+    @apply rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-xl;
+  }
+
+  .makcha-glass-strong {
+    @apply rounded-2xl border border-white/10 bg-black/30 shadow-2xl backdrop-blur-xl;
+  }
+
+  .makcha-glass-btn {
+    @apply shrink-0 rounded-2xl border border-white/10 bg-white/[0.02] p-4 text-sm font-semibold text-zinc-200 backdrop-blur-xl transition-all duration-300 hover:border-amber-500/30 hover:bg-white/[0.05] hover:text-amber-300 focus:border-amber-500/40 focus:bg-white/[0.06] focus:shadow-[0_0_20px_rgba(245,158,11,0.1)] focus:outline-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .makcha-glass-dropdown {
+    @apply mt-2 max-h-64 overflow-y-auto rounded-2xl border border-white/10 bg-zinc-950/80 shadow-2xl backdrop-blur-2xl;
+  }
+
+  .makcha-segment {
+    @apply rounded-2xl border border-white/10 bg-white/[0.02] p-1 backdrop-blur-xl;
+  }
+
+  .makcha-segment-item {
+    @apply flex-1 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300 active:scale-[0.98];
+  }
+
+  .makcha-segment-item-selected {
+    @apply border border-amber-500/40 bg-amber-500/15 text-amber-300 shadow-[inset_0_1px_0_rgba(251,191,36,0.15),0_0_16px_rgba(245,158,11,0.12)];
+  }
+
+  .makcha-segment-item-default {
+    @apply border border-transparent text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200;
+  }
+
+  /* ── Screen 1: Milky Glass Light ── */
+  .makcha-input-light {
+    @apply w-full rounded-2xl border border-zinc-200/60 bg-white/70 p-4 text-base text-zinc-900 shadow-[0_4px_12px_rgba(0,0,0,0.03)] backdrop-blur-xl outline-none transition-all duration-300 placeholder:text-zinc-400 focus:border-red-500/40 focus:bg-white focus:ring-4 focus:ring-red-500/5 focus:outline-none;
+  }
+
+  .makcha-glass-btn-light {
+    @apply shrink-0 rounded-2xl border border-zinc-200/60 bg-white/70 p-4 text-sm font-semibold text-zinc-700 shadow-[0_4px_12px_rgba(0,0,0,0.03)] backdrop-blur-xl transition-all duration-300 hover:border-red-500/30 hover:bg-white hover:text-red-500 focus:border-red-500/40 focus:bg-white focus:ring-4 focus:ring-red-500/5 focus:outline-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .makcha-glass-dropdown-light {
+    @apply mt-2 max-h-64 overflow-y-auto rounded-2xl border border-zinc-200/60 bg-white/90 shadow-[0_8px_32px_rgba(0,0,0,0.08)] backdrop-blur-2xl;
+  }
+
+  .makcha-segment-light {
+    @apply rounded-2xl bg-zinc-200/50 p-1;
+  }
+
+  .makcha-segment-item-light {
+    @apply flex-1 rounded-xl px-3 py-2.5 text-sm font-medium text-zinc-600 transition-all duration-300 active:scale-[0.98];
+  }
+
+  .makcha-segment-item-light-selected {
+    @apply border border-zinc-200/20 bg-white font-semibold text-red-500 shadow-sm;
+  }
+
+  .makcha-segment-item-light-default {
+    @apply border border-transparent hover:text-zinc-800;
+  }
+
+  .makcha-glass-card-light {
+    @apply rounded-3xl border border-white/40 bg-white/65 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.015)] backdrop-blur-2xl;
+  }
+
+  .makcha-glass-card-light-muted {
+    @apply saturate-[0.35] opacity-90;
+  }
 }

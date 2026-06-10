@@ -18,7 +18,8 @@ export const PRESSURE_COPY_BY_MINUTES = [
   },
 ] as const;
 
-export const LATE_PRESSURE_COPY = "이미 늦었습니다. 다음엔 버퍼를 늘리세요.";
+export const LATE_PRESSURE_COPY =
+  "이미 늦었습니다. 지금 당장 택시를 타거나 전력 질주하세요.";
 
 export function getPressureCopy(
   minutesRemaining: number,

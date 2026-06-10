@@ -27,6 +27,5 @@ export function hasMapCoordinates(trip: TripRoute): boolean {
 }
 
 export type CalculatePayload = {
-  bufferMinutes: number;
   appointment: AppointmentTimeInput;
 };

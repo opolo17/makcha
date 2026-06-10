@@ -20,20 +20,11 @@ function FieldLabel({
   return (
     <label
       htmlFor={htmlFor}
-      className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted"
+      className="mb-2.5 block text-[11px] font-semibold uppercase tracking-widest text-zinc-500"
     >
       {children}
     </label>
   );
-}
-
-function inputClassName() {
-  return [
-    "w-full rounded-xl border border-border bg-surface-elevated px-4 py-3.5",
-    "text-base text-foreground placeholder:text-zinc-400",
-    "outline-none transition-[border-color,box-shadow]",
-    "focus:border-neon-yellow focus:shadow-[0_0_0_3px_var(--neon-yellow-glow)]",
-  ].join(" ");
 }
 
 type LocationSearchFieldProps = {
@@ -180,7 +171,7 @@ export function LocationSearchField({
           onChange={(e) => handleInputChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className={inputClassName()}
+          className="makcha-input-light min-w-0 flex-1"
           autoComplete="off"
           role="combobox"
           aria-expanded={isOpen}
@@ -191,20 +182,23 @@ export function LocationSearchField({
           type="button"
           onClick={() => void runSearch()}
           disabled={isLoading || query.trim().length < MIN_QUERY_LENGTH}
-          className="shrink-0 rounded-xl border border-border bg-surface px-4 py-3.5 text-sm font-bold text-foreground transition-colors hover:border-zinc-400 disabled:cursor-not-allowed disabled:opacity-40"
+          className="makcha-glass-btn-light"
         >
           {isLoading ? "…" : "검색"}
         </button>
       </div>
 
       {value ? (
-        <p className="mt-1.5 text-xs text-neon-yellow">
-          ✓ {value.name} 선택됨 ({value.lat.toFixed(5)}, {value.lng.toFixed(5)})
+        <p className="mt-2.5 flex items-center gap-1.5 text-sm font-semibold text-red-500">
+          <span className="inline-flex size-4 items-center justify-center rounded-full bg-red-500/10 text-[10px] text-red-500">
+            ✓
+          </span>
+          {value.name}
         </p>
       ) : null}
 
       {error ? (
-        <p className="mt-1.5 text-xs text-neon-red" role="alert">
+        <p className="mt-2.5 text-sm text-red-500" role="alert">
           {error}
         </p>
       ) : null}
@@ -213,7 +207,7 @@ export function LocationSearchField({
         <ul
           id={listboxId}
           role="listbox"
-          className="absolute inset-x-0 top-full z-20 mt-1 max-h-64 overflow-y-auto rounded-xl border border-border bg-surface-elevated shadow-lg"
+          className="makcha-glass-dropdown-light absolute inset-x-0 top-full z-20"
         >
           {results.map((place) => (
             <li
@@ -223,12 +217,16 @@ export function LocationSearchField({
               <button
                 type="button"
                 onClick={() => handleSelect(place)}
-                className="flex w-full flex-col gap-0.5 border-b border-border px-4 py-3 text-left last:border-b-0 hover:bg-surface"
+                className={[
+                  "flex w-full flex-col gap-1 border-b border-zinc-100 px-4 py-4 text-left",
+                  "transition-all duration-300 last:border-b-0",
+                  "hover:bg-zinc-50 active:scale-[0.99]",
+                ].join(" ")}
               >
-                <span className="text-sm font-semibold text-foreground">
+                <span className="text-base font-medium text-zinc-900">
                   {place.name}
                 </span>
-                <span className="text-xs text-muted">{place.address}</span>
+                <span className="text-sm text-zinc-500">{place.address}</span>
               </button>
             </li>
           ))}

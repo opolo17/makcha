@@ -1,4 +1,5 @@
 import type { OdsayPath, OdsaySubPath } from "@/lib/odsay/types";
+import { formatSubwayLineName } from "@/lib/odsay/subway-timetable";
 
 export type ParsedTransitLeg = {
   mode: "subway" | "bus";
@@ -7,11 +8,22 @@ export type ParsedTransitLeg = {
   stationId: number;
   lineName: string;
   direction?: string;
+  way?: string;
   wayCode?: number;
   busId?: number;
   busNo?: string;
   sectionTimeMinutes: number;
 };
+
+function formatLaneName(subPath: OdsaySubPath): string {
+  if (subPath.trafficType === 1) {
+    return formatSubwayLineName(subPath.lane?.name, subPath.lane?.subwayCode
+      ? `${subPath.lane.subwayCode}호선`
+      : "지하철");
+  }
+
+  return subPath.lane?.busNo ?? subPath.lane?.name ?? "버스";
+}
 
 export function pickFastestPath(paths: OdsayPath[]): OdsayPath | null {
   if (!paths.length) return null;
@@ -35,8 +47,9 @@ export function findFirstTransitLeg(
         trafficType: 1,
         stationName: subPath.startName ?? "승차역",
         stationId: subPath.startID ?? 0,
-        lineName: subPath.lane?.name ?? "지하철",
+        lineName: formatLaneName(subPath),
         direction: subPath.way,
+        way: subPath.way,
         wayCode: subPath.wayCode,
         sectionTimeMinutes: subPath.sectionTime ?? 0,
       };
@@ -48,7 +61,7 @@ export function findFirstTransitLeg(
         trafficType: 2,
         stationName: subPath.startName ?? "정류장",
         stationId: subPath.startID ?? 0,
-        lineName: subPath.lane?.busNo ?? subPath.lane?.name ?? "버스",
+        lineName: formatLaneName(subPath),
         busId: subPath.lane?.busID,
         busNo: subPath.lane?.busNo,
         sectionTimeMinutes: subPath.sectionTime ?? 0,
@@ -88,12 +101,9 @@ export function buildTimelineFromSubPaths(
       timeline.push({
         modeLabel: "지하철",
         segments: [
-          `${subPath.startName ?? "승차역"} (${subPath.lane?.name ?? "지하철"})`,
+          `${subPath.startName ?? "승차역"} (${formatLaneName(subPath)})`,
           `이동 ${subPath.sectionTime ?? 0}분`,
         ],
-        highlightLine: subPath.way
-          ? `★ [${subPath.way}] 열차 실시간 도착 확인`
-          : undefined,
       });
       continue;
     }
@@ -102,7 +112,7 @@ export function buildTimelineFromSubPaths(
       timeline.push({
         modeLabel: "버스",
         segments: [
-          `${subPath.startName ?? "정류장"} (${subPath.lane?.busNo ?? "버스"})`,
+          `${subPath.startName ?? "정류장"} (${formatLaneName(subPath)})`,
           `이동 ${subPath.sectionTime ?? 0}분`,
         ],
       });

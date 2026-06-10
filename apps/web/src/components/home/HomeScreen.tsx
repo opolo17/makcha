@@ -1,13 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { LocationSearchField } from "@/components/home/LocationSearchField";
 import { MakchaLogo } from "@/components/brand/MakchaLogo";
-import {
-  BUFFER_STYLE_OPTIONS,
-  getBufferMinutesById,
-  type BufferStyleId,
-} from "@/lib/buffer-styles";
+import type { HomeFormState } from "@/types/home-form";
 import type { LocationData } from "@/types/location";
 import type { CalculatePayload } from "@/types/trip-route";
 
@@ -24,25 +19,18 @@ function FieldLabel({
   return (
     <label
       htmlFor={htmlFor}
-      className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted"
+      className="mb-2.5 block text-[11px] font-semibold uppercase tracking-widest text-zinc-500"
     >
       {children}
     </label>
   );
 }
 
-function inputClassName() {
-  return [
-    "w-full rounded-xl border border-border bg-surface-elevated px-4 py-3.5",
-    "text-base text-foreground placeholder:text-zinc-400",
-    "outline-none transition-[border-color,box-shadow]",
-    "focus:border-neon-yellow focus:shadow-[0_0_0_3px_var(--neon-yellow-glow)]",
-  ].join(" ");
-}
-
 type HomeScreenProps = {
   departure: LocationData | null;
   destination: LocationData | null;
+  homeForm: HomeFormState;
+  onHomeFormChange: (patch: Partial<HomeFormState>) => void;
   calculateError?: string | null;
   isCalculating?: boolean;
   onDepartureChange: (location: LocationData | null) => void;
@@ -53,20 +41,18 @@ type HomeScreenProps = {
 export function HomeScreen({
   departure,
   destination,
+  homeForm,
+  onHomeFormChange,
   calculateError,
   isCalculating = false,
   onDepartureChange,
   onDestinationChange,
   onCalculate,
 }: HomeScreenProps) {
-  const [bufferStyle, setBufferStyle] = useState<BufferStyleId>("normal");
-  const [meridiem, setMeridiem] = useState<"AM" | "PM">("PM");
-  const [hour, setHour] = useState("9");
-  const [minute, setMinute] = useState("0");
+  const { appointmentName, hour, minute, meridiem } = homeForm;
 
   const handleSubmit = () => {
     onCalculate?.({
-      bufferMinutes: getBufferMinutesById(bufferStyle),
       appointment: {
         hour: Number(hour),
         minute: Number(minute),
@@ -78,23 +64,23 @@ export function HomeScreen({
   const canCalculate = Boolean(departure && destination) && !isCalculating;
 
   return (
-    <div className="relative mx-auto min-h-full max-w-md bg-background">
+    <div className="relative mx-auto min-h-full max-w-md bg-zinc-50">
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-neon-yellow/15 via-transparent to-transparent"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(239,68,68,0.04),transparent_50%)]"
         aria-hidden
       />
 
-      <main className="relative flex min-h-full flex-col px-5 pb-32 pt-10">
-        <header className="mb-8">
-          <MakchaLogo className="h-10 w-auto" priority />
-          <p className="mt-3 font-impact text-lg font-bold leading-snug text-zinc-700">
+      <main className="relative z-10 flex min-h-full flex-col px-5 pb-36 pt-10">
+        <header className="mb-10">
+          <MakchaLogo className="h-9 w-auto" priority />
+          <p className="mt-4 text-lg font-medium tracking-tight text-zinc-900">
             오늘도{" "}
-            <span className="text-neon-red">늦으실 건가요?</span>
+            <span className="text-red-500">늦으실 건가요?</span>
           </p>
         </header>
 
         <form
-          className="flex flex-1 flex-col gap-7"
+          className="flex flex-1 flex-col gap-6"
           onSubmit={(e) => e.preventDefault()}
         >
           <section>
@@ -103,8 +89,12 @@ export function HomeScreen({
               id="appointment-name"
               name="appointmentName"
               type="text"
+              value={appointmentName}
+              onChange={(e) =>
+                onHomeFormChange({ appointmentName: e.target.value })
+              }
               placeholder="예: 팀 미팅, 점심 약속"
-              className={inputClassName()}
+              className="makcha-input-light"
               autoComplete="off"
             />
           </section>
@@ -116,12 +106,12 @@ export function HomeScreen({
                 <select
                   name="hour"
                   value={hour}
-                  onChange={(e) => setHour(e.target.value)}
-                  className={`${inputClassName()} flex-1 appearance-none text-center`}
+                  onChange={(e) => onHomeFormChange({ hour: e.target.value })}
+                  className="makcha-input-light flex-1 cursor-pointer appearance-none text-center"
                   aria-label="시"
                 >
                   {HOURS.map((h) => (
-                    <option key={h} value={String(h)}>
+                    <option key={h} value={String(h)} className="bg-white text-zinc-900">
                       {h}시
                     </option>
                   ))}
@@ -129,19 +119,19 @@ export function HomeScreen({
                 <select
                   name="minute"
                   value={minute}
-                  onChange={(e) => setMinute(e.target.value)}
-                  className={`${inputClassName()} flex-1 appearance-none text-center`}
+                  onChange={(e) => onHomeFormChange({ minute: e.target.value })}
+                  className="makcha-input-light flex-1 cursor-pointer appearance-none text-center"
                   aria-label="분"
                 >
                   {MINUTES.map((m) => (
-                    <option key={m} value={String(m)}>
+                    <option key={m} value={String(m)} className="bg-white text-zinc-900">
                       {String(m).padStart(2, "0")}분
                     </option>
                   ))}
                 </select>
               </div>
               <div
-                className="flex shrink-0 overflow-hidden rounded-xl border border-border bg-surface-elevated p-1"
+                className="makcha-segment-light flex shrink-0"
                 role="group"
                 aria-label="오전/오후"
               >
@@ -152,12 +142,12 @@ export function HomeScreen({
                     <button
                       key={value}
                       type="button"
-                      onClick={() => setMeridiem(value)}
+                      onClick={() => onHomeFormChange({ meridiem: value })}
                       className={[
-                        "rounded-lg px-4 py-3 text-sm font-bold transition-all",
+                        "makcha-segment-item-light px-3.5",
                         selected
-                          ? "bg-neon-yellow text-black shadow-[0_0_16px_var(--neon-yellow-glow)]"
-                          : "text-zinc-500 hover:text-zinc-800",
+                          ? "makcha-segment-item-light-selected"
+                          : "makcha-segment-item-light-default",
                       ].join(" ")}
                       aria-pressed={selected}
                     >
@@ -184,58 +174,13 @@ export function HomeScreen({
             value={destination}
             onChange={onDestinationChange}
           />
-
-          <section>
-            <FieldLabel>나의 준비 스타일</FieldLabel>
-            <div className="flex flex-col gap-2" role="radiogroup" aria-label="준비 스타일">
-              {BUFFER_STYLE_OPTIONS.map((option) => {
-                const selected = bufferStyle === option.id;
-                return (
-                  <button
-                    key={option.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={selected}
-                    onClick={() => setBufferStyle(option.id)}
-                    className={[
-                      "flex w-full items-center justify-between rounded-xl border px-4 py-3.5 text-left transition-all",
-                      selected
-                        ? "border-neon-yellow bg-neon-yellow/10 shadow-[0_0_20px_var(--neon-yellow-glow)]"
-                        : "border-border bg-surface hover:border-zinc-400",
-                    ].join(" ")}
-                  >
-                    <span
-                      className={
-                        selected
-                          ? "font-bold text-neon-yellow"
-                          : "font-medium text-zinc-700"
-                      }
-                    >
-                      {option.label}
-                    </span>
-                    <span
-                      className={
-                        selected ? "text-sm text-neon-yellow/80" : "text-sm text-muted"
-                      }
-                    >
-                      {option.bufferMinutes}분 버퍼
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
         </form>
       </main>
 
-      <div className="fixed inset-x-0 bottom-0 z-10 mx-auto max-w-md px-5 pb-8 pt-4">
-        <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-background via-background/95 to-transparent"
-          aria-hidden
-        />
+      <div className="fixed inset-x-0 bottom-0 z-10 mx-auto max-w-md border-t border-zinc-200/60 bg-white/80 px-5 pb-8 pt-4 backdrop-blur-xl">
         {calculateError ? (
           <p
-            className="relative mb-3 rounded-xl border border-red-300/50 bg-red-50 px-4 py-3 text-center text-sm font-medium text-red-700"
+            className="mb-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm font-medium leading-relaxed text-red-600"
             role="alert"
           >
             {calculateError}
@@ -246,14 +191,15 @@ export function HomeScreen({
           onClick={handleSubmit}
           disabled={!canCalculate}
           className={[
-            "btn-primary-glow relative w-full rounded-2xl py-4 font-impact text-lg font-black tracking-tight",
-            "bg-gradient-to-r from-neon-red via-red-500 to-neon-red text-white",
-            "border border-red-400/30",
-            "transition-transform active:scale-[0.98]",
-            "disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
+            "w-full rounded-2xl bg-gradient-to-r from-red-500 to-orange-500 py-4",
+            "font-bold tracking-tight text-white",
+            "shadow-[0_8px_24px_rgba(239,68,68,0.28),inset_0_1px_1px_rgba(255,255,255,0.4)]",
+            "transition-all duration-300 hover:brightness-105",
+            "active:scale-[0.98]",
+            "disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none disabled:active:scale-100",
           ].join(" ")}
         >
-          🚨 막차 시간 계산하기
+          막차 시간 계산하기
         </button>
       </div>
     </div>

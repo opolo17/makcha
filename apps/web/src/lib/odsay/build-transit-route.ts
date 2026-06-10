@@ -5,8 +5,9 @@ import {
   findFirstTransitLeg,
   pickFastestPath,
 } from "@/lib/odsay/parse-route";
-import { fetchFirstTransitArrival } from "@/lib/odsay/realtime";
+import { fetchFirstTransitSchedule } from "@/lib/odsay/realtime";
 import { searchPubTransPathT } from "@/lib/odsay/search-path";
+import { buildFirstVehicleSchedule, buildVehicleHighlightLine } from "@/lib/vehicle-schedule";
 import type {
   TransitCoordinate,
   TransitRouteResponse,
@@ -41,31 +42,55 @@ export async function buildTransitRouteResponse(
 
   const totalDurationMinutes = bestPath.info.totalTime ?? 0;
   const firstLeg = findFirstTransitLeg(bestPath.subPath ?? []);
+  const capturedAt = new Date();
 
   let firstTransit: TransitRouteResponse["firstTransit"] = null;
+  let firstVehicleSchedule: TransitRouteResponse["firstVehicleSchedule"] = null;
+  let firstVehicleDepartureTime: string | null = null;
 
   if (firstLeg && firstLeg.stationId > 0) {
-    const arrival = await fetchFirstTransitArrival(firstLeg, options?.apiKey);
+    const schedulePair = await fetchFirstTransitSchedule(firstLeg, options?.apiKey);
+    const arrival = schedulePair.first;
+
     firstTransit = {
       mode: firstLeg.mode,
       stationName: firstLeg.stationName,
-      lineName: firstLeg.lineName,
-      direction: firstLeg.direction,
+      lineName: arrival.lineName ?? firstLeg.lineName,
+      direction: arrival.direction ?? firstLeg.direction,
       arrival,
     };
+
+    if (arrival.source !== "unavailable" && arrival.secondsUntilArrival >= 0) {
+      const secondSeconds =
+        schedulePair.second?.secondsUntilArrival ?? null;
+
+      firstVehicleSchedule = buildFirstVehicleSchedule(
+        {
+          mode: firstLeg.mode,
+          stationName: firstLeg.stationName,
+          lineName: arrival.lineName ?? firstLeg.lineName,
+          direction: arrival.direction ?? firstLeg.direction,
+        },
+        arrival.secondsUntilArrival,
+        secondSeconds,
+        capturedAt,
+      );
+      firstVehicleDepartureTime =
+        firstVehicleSchedule?.firstVehicleDepartureTime ?? null;
+    }
   }
 
   const timeline = buildTimelineFromSubPaths(bestPath.subPath ?? []);
 
-  if (firstTransit?.arrival && firstTransit.arrival.source !== "unavailable") {
+  if (firstVehicleSchedule) {
     const transitIdx = timeline.findIndex(
       (step) => step.modeLabel === "지하철" || step.modeLabel === "버스",
     );
     if (transitIdx >= 0) {
-      const direction = firstTransit.direction ?? firstTransit.lineName;
+      const departure = new Date(firstVehicleSchedule.firstVehicleDepartureTime);
       timeline[transitIdx] = {
         ...timeline[transitIdx],
-        highlightLine: `★ [${direction}] ${firstTransit.arrival.label}`,
+        highlightLine: buildVehicleHighlightLine(firstVehicleSchedule, departure),
       };
     }
   }
@@ -73,6 +98,8 @@ export async function buildTransitRouteResponse(
   return {
     totalDurationMinutes,
     totalDurationLabel: formatDurationMinutes(totalDurationMinutes),
+    firstVehicleDepartureTime,
+    firstVehicleSchedule,
     firstTransit,
     route: {
       pathType: bestPath.pathType,

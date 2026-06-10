@@ -1,11 +1,9 @@
-/** 막차 시각 = 약속 시각 − (이동 시간 + 준비 버퍼) */
+/** 막차 시각 = 약속 시각 − 대중교통 이동 시간 */
 export function computeLeaveDeadlineAt(
   appointmentAt: Date,
   travelMinutes: number,
-  bufferMinutes: number,
 ): Date {
-  const totalMinutes = travelMinutes + bufferMinutes;
-  return new Date(appointmentAt.getTime() - totalMinutes * 60 * 1000);
+  return new Date(appointmentAt.getTime() - travelMinutes * 60 * 1000);
 }
 
 export function getSecondsUntilDeadline(

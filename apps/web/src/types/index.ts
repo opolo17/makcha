@@ -1,6 +1,3 @@
-/** 출문 전 준비에 필요한 시간(분) — 사용자 버퍼 */
-export type PreparationBufferMinutes = number;
-
 /** 계산된 막차(leave-by) 데드라인 */
 export type MakchaDeadline = {
   /** 지금 문 열고 나가야 하는 시각 */

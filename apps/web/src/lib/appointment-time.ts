@@ -31,3 +31,13 @@ export function formatKoreanTime(date: Date): string {
   const meridiem = isPm ? "오후" : "오전";
   return `${meridiem} ${String(hour12).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 }
+
+/** 카운트다운·차량 시각 강조용 — "오후 11시 32분" */
+export function formatKoreanTimeVerbose(date: Date): string {
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const isPm = hours >= 12;
+  const hour12 = hours % 12 || 12;
+  const meridiem = isPm ? "오후" : "오전";
+  return `${meridiem} ${hour12}시 ${String(minutes).padStart(2, "0")}분`;
+}

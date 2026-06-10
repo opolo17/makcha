@@ -1,3 +1,5 @@
+import type { FirstVehicleSchedule } from "@/types/transit-route";
+
 export type RouteTimelineStep = {
   id: string;
   modeLabel: string;
@@ -8,4 +10,8 @@ export type RouteTimelineStep = {
 export type CountdownRouteData = {
   timeline: RouteTimelineStep[];
   arrivalNotice: string;
+  totalDurationMinutes: number;
+  appointmentAt: Date;
+  firstVehicleDepartureTime: string | null;
+  firstVehicleSchedule: FirstVehicleSchedule | null;
 };
